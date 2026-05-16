@@ -46,20 +46,25 @@
         </form>
       </section>
 
-      <section id="painelPrincipal" class="hidden">
-        <h1>TIMER</h1>
-        <div id="pomodoroPainel" class="hidden pomodoro-grid">
-          <section class="status-card">
-            <p class="label">Foco (oculto)</p>
-            <p class="status-value status-on">Ativo</p>
-            <p class="substatus">Tempo aleatório entre 8 e 35 min (invisível).</p>
+      <div class="painel-central-grid">
+          <div class="controle-lateral">
+            <label for="tempoMinimoManual" class="label-lateral">Tempo Mínimo</label>
+            <input id="tempoMinimoManual" class="input-lateral" type="number" min="1" step="1" aria-label="Ajustar tempo mínimo manualmente" />
+          </div>
+
+          <section class="status-card" style="margin: 0;">
+            <p class="label">Status</p>
+            <p id="statusPrincipal" class="status-value status-off">Desligado</p>
+            <p id="subStatus" class="substatus">Cronômetro desligado.</p>
+            <p id="configResumo" class="setup-resumo"></p>
           </section>
-          <section class="status-card descanso-card">
-            <p class="label">Descanso (visível)</p>
-            <p id="descansoTempo" class="status-value descanso-status">00:00</p>
-            <p class="substatus">Cronômetro azul de 4 a 25 min.</p>
-          </section>
+
+          <div class="controle-lateral">
+            <label for="tempoMaximoManual" class="label-lateral">Tempo Máximo</label>
+            <input id="tempoMaximoManual" class="input-lateral" type="number" min="1" step="1" aria-label="Ajustar tempo máximo manualmente" />
+          </div>
         </div>
+        <p id="erroTempoManual" class="erro hidden" role="alert" style="margin-bottom: 1rem;"></p>
 
         <section class="status-card">
           <p class="label">Status</p>
