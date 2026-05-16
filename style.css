@@ -250,3 +250,54 @@ h1 {
 .descanso-status {
   color: #2563eb;
 }
+.painel-central-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.controle-lateral {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.label-lateral {
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #dc2626; /* Cor vermelha como no seu esboço */
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.input-lateral {
+  width: 100%;
+  max-width: 80px;
+  text-align: center;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.8rem 0.2rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #111827;
+}
+
+.input-lateral:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+/* Ajuste para telas de celular (coloca o status no topo e os tempos embaixo) */
+@media (max-width: 500px) {
+  .painel-central-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .painel-central-grid .status-card {
+    grid-column: span 2;
+    order: -1; 
+  }
+}
