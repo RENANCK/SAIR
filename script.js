@@ -1,6 +1,3 @@
-const MIN_MINUTOS_ABSOLUTO = 5;
-const MAX_MINUTOS_ABSOLUTO = 30;
-
 const MIN_FOCO_POMODORO = 8;
 const MAX_FOCO_POMODORO = 35;
 const MIN_DESCANSO_POMODORO = 4;
@@ -18,13 +15,18 @@ let descansoFimEm = null;
 const telaInicial = document.getElementById('telaInicial');
 const painelPrincipal = document.getElementById('painelPrincipal');
 const formConfig = document.getElementById('formConfig');
-const tempoMedioInput = document.getElementById('tempoMedio');
-const faixaPreview = document.getElementById('faixaPreview');
+
+// Novos inputs de min/max
+const tempoMinimoInput = document.getElementById('tempoMinimo');
+const tempoMaximoInput = document.getElementById('tempoMaximo');
 const erroConfig = document.getElementById('erroConfig');
 const configResumo = document.getElementById('configResumo');
-const tempoMedioManualInput = document.getElementById('tempoMedioManual');
+
+const tempoMinimoManualInput = document.getElementById('tempoMinimoManual');
+const tempoMaximoManualInput = document.getElementById('tempoMaximoManual');
 const btnAplicarTempoManual = document.getElementById('btnAplicarTempoManual');
 const erroTempoManual = document.getElementById('erroTempoManual');
+
 const intervaloNovoInput = document.getElementById('intervaloNovo');
 const btnAdicionarIntervalo = document.getElementById('btnAdicionarIntervalo');
 const listaIntervalos = document.getElementById('listaIntervalos');
@@ -46,39 +48,12 @@ let timerId = null;
 let countdownId = null;
 let ativo = false;
 let emDesafio = false;
-let tempoMedioMinutos = null;
+let tempoMinimoAtual = null;
+let tempoMaximoAtual = null;
 let proximoDesafioEm = null;
 let intervalosPersonalizados = [];
 
 const CONTAGEM_FINAL_SEGUNDOS = 2 * 60;
-
-function obterFaixaSorteio() {
-  return calcularFaixaPorMedia(tempoMedioMinutos);
-}
-
-function calcularFaixaPorMedia(mediaMinutos) {
-  const mediaNormalizada = Math.max(MIN_MINUTOS_ABSOLUTO, Math.floor(mediaMinutos));
-  const maximoCalculado = Math.max(MIN_MINUTOS_ABSOLUTO, mediaNormalizada * 2 - MIN_MINUTOS_ABSOLUTO);
-  return {
-    minimo: MIN_MINUTOS_ABSOLUTO,
-    maximo: Math.min(MAX_MINUTOS_ABSOLUTO, maximoCalculado),
-  };
-}
-
-function atualizarPreviewFaixa() {
-  if (!faixaPreview) {
-    return;
-  }
-
-  const valor = Number(tempoMedioInput.value);
-  if (!Number.isFinite(valor) || valor < MIN_MINUTOS_ABSOLUTO) {
-    faixaPreview.textContent = `Faixa estimada: mínimo de ${MIN_MINUTOS_ABSOLUTO} minutos.`;
-    return;
-  }
-
-  const { minimo, maximo } = calcularFaixaPorMedia(valor);
-  faixaPreview.textContent = `Faixa estimada: ${minimo} a ${maximo} minutos.`;
-}
 
 function sortearDuracaoMs() {
   if (modoAtual === 'pomodoro') {
@@ -92,16 +67,12 @@ function sortearDuracaoMs() {
     return minutosPersonalizados * 60 * 1000;
   }
 
-  const { minimo, maximo } = obterFaixaSorteio();
-  const minutos = Math.floor(Math.random() * (maximo - minimo + 1)) + minimo;
+  const minutos = Math.floor(Math.random() * (tempoMaximoAtual - tempoMinimoAtual + 1)) + tempoMinimoAtual;
   return minutos * 60 * 1000;
 }
 
 function normalizarValorMinutos(valor) {
-  if (!Number.isFinite(valor)) {
-    return null;
-  }
-
+  if (!Number.isFinite(valor)) return null;
   return Math.floor(valor);
 }
 
@@ -151,57 +122,40 @@ function criarItemIntervalo(minutos) {
 
 function atualizarListaIntervalos() {
   listaIntervalos.innerHTML = '';
-
   if (intervalosPersonalizados.length === 0) {
     listaIntervalos.classList.add('hidden');
     return;
   }
-
   const fragmento = document.createDocumentFragment();
   intervalosPersonalizados.forEach((minutos) => {
     fragmento.appendChild(criarItemIntervalo(minutos));
   });
-
   listaIntervalos.appendChild(fragmento);
   listaIntervalos.classList.remove('hidden');
 }
 
 function atualizarResumoConfig() {
-  if (!tempoMedioMinutos) {
-    return;
-  }
-
-  const { minimo, maximo } = obterFaixaSorteio();
+  if (!tempoMinimoAtual || !tempoMaximoAtual) return;
 
   if (intervalosPersonalizados.length > 0) {
-    configResumo.textContent = `Tempo médio configurado: ${tempoMedioMinutos} min (intervalos fixos: ${intervalosPersonalizados.join(', ')} min).`;
+    configResumo.textContent = `Faixa sorteio: ${tempoMinimoAtual} a ${tempoMaximoAtual} min (Intervalos extras: ${intervalosPersonalizados.join(', ')} min).`;
     return;
   }
-
-  configResumo.textContent = `Tempo médio configurado: ${tempoMedioMinutos} min (ciclos aleatórios entre ${minimo} e ${maximo} min).`;
+  configResumo.textContent = `Sorteando ciclos aleatórios entre ${tempoMinimoAtual} e ${tempoMaximoAtual} minutos.`;
 }
 
 function adicionarIntervalo() {
   const valor = Number(intervaloNovoInput.value);
   const valorNormalizado = normalizarValorMinutos(valor);
 
-  if (valorNormalizado === null) {
-    mostrarErroIntervalos('Informe um intervalo válido em minutos.');
+  if (valorNormalizado === null || valorNormalizado < 1) {
+    mostrarErroIntervalos('Informe um intervalo válido maior que 0.');
     return;
   }
-
-  if (valorNormalizado < MIN_MINUTOS_ABSOLUTO || valorNormalizado > MAX_MINUTOS_ABSOLUTO) {
-    mostrarErroIntervalos(
-      `O intervalo precisa estar entre ${MIN_MINUTOS_ABSOLUTO} e ${MAX_MINUTOS_ABSOLUTO} minutos.`,
-    );
-    return;
-  }
-
   if (intervalosPersonalizados.includes(valorNormalizado)) {
     mostrarErroIntervalos('Esse intervalo já foi adicionado.');
     return;
   }
-
   intervalosPersonalizados.push(valorNormalizado);
   intervalosPersonalizados.sort((a, b) => a - b);
   intervaloNovoInput.value = '';
@@ -222,26 +176,18 @@ function limparContagem() {
     clearInterval(countdownId);
     countdownId = null;
   }
-
   proximoDesafioEm = null;
   descansoFimEm = null;
 }
 
 function formatarSegundosEmMinutos(segundosTotais) {
-  const minutos = Math.floor(segundosTotais / 60)
-    .toString()
-    .padStart(2, '0');
-  const segundos = Math.floor(segundosTotais % 60)
-    .toString()
-    .padStart(2, '0');
-
+  const minutos = Math.floor(segundosTotais / 60).toString().padStart(2, '0');
+  const segundos = Math.floor(segundosTotais % 60).toString().padStart(2, '0');
   return `${minutos}:${segundos}`;
 }
 
 function atualizarContagemRegressivaFinal() {
-  if (!ativo || emDesafio || !proximoDesafioEm) {
-    return;
-  }
+  if (!ativo || emDesafio || !proximoDesafioEm) return;
 
   const restanteMs = proximoDesafioEm - Date.now();
   const restanteSegundos = Math.ceil(restanteMs / 1000);
@@ -274,26 +220,20 @@ function atualizarEstadoBotoes() {
   btnPararContinuar.disabled = !(ativo && emDesafio);
 }
 
-
 function sortearDescansoPomodoroMs() {
   const minutosDescanso = Math.floor(Math.random() * (MAX_DESCANSO_POMODORO - MIN_DESCANSO_POMODORO + 1)) + MIN_DESCANSO_POMODORO;
   return minutosDescanso * 60 * 1000;
 }
 
 function atualizarCronometroDescanso() {
-  if (modoAtual !== 'pomodoro' || !descansoFimEm || !descansoTempo) {
-    return;
-  }
-
+  if (modoAtual !== 'pomodoro' || !descansoFimEm || !descansoTempo) return;
   const restanteMs = descansoFimEm - Date.now();
   const restanteSegundos = Math.max(0, Math.ceil(restanteMs / 1000));
   descansoTempo.textContent = formatarSegundosEmMinutos(restanteSegundos);
 }
 
 function iniciarCicloOculto() {
-  if (!ativo || emDesafio) {
-    return;
-  }
+  if (!ativo || emDesafio) return;
 
   limparTimer();
   limparContagem();
@@ -317,9 +257,7 @@ function iniciarCicloOculto() {
 }
 
 async function dispararDesafio() {
-  if (!ativo) {
-    return;
-  }
+  if (!ativo) return;
 
   emDesafio = true;
   limparContagem();
@@ -338,10 +276,7 @@ async function dispararDesafio() {
 }
 
 function ativar() {
-  if (!tempoMedioMinutos || ativo) {
-    return;
-  }
-
+  if (!tempoMinimoAtual || !tempoMaximoAtual || ativo) return;
   ativo = true;
   emDesafio = false;
   atualizarEstadoBotoes();
@@ -349,10 +284,7 @@ function ativar() {
 }
 
 function pararMusicaEContinuar() {
-  if (!ativo || !emDesafio) {
-    return;
-  }
-
+  if (!ativo || !emDesafio) return;
   alarme.pause();
   alarme.currentTime = 0;
   emDesafio = false;
@@ -362,13 +294,10 @@ function pararMusicaEContinuar() {
 function desativar() {
   ativo = false;
   emDesafio = false;
-
   limparTimer();
   limparContagem();
-
   alarme.pause();
   alarme.currentTime = 0;
-
   atualizarStatusPrincipal('Desligado', 'status-off');
   subStatus.textContent = 'Cronômetro desligado.';
   alertaDesafio.classList.add('hidden');
@@ -377,11 +306,9 @@ function desativar() {
 
 function voltarParaConfiguracao() {
   desativar();
-
-  if (tempoMedioMinutos) {
-    tempoMedioInput.value = tempoMedioMinutos;
-  }
-
+  if (tempoMinimoAtual) tempoMinimoInput.value = tempoMinimoAtual;
+  if (tempoMaximoAtual) tempoMaximoInput.value = tempoMaximoAtual;
+  
   erroConfig.classList.add('hidden');
   limparErroIntervalos();
   painelPrincipal.classList.add('hidden');
@@ -389,19 +316,23 @@ function voltarParaConfiguracao() {
   telaModo.classList.remove('hidden');
 }
 
-function configurarTempoMedio(evento) {
+function configurarTempos(evento) {
   evento.preventDefault();
+  const minVal = Number(tempoMinimoInput.value);
+  const maxVal = Number(tempoMaximoInput.value);
 
-  const valor = Number(tempoMedioInput.value);
-
-  if (!Number.isFinite(valor) || valor < MIN_MINUTOS_ABSOLUTO || valor > MAX_MINUTOS_ABSOLUTO) {
-    erroConfig.textContent = `O tempo médio precisa estar entre ${MIN_MINUTOS_ABSOLUTO} e ${MAX_MINUTOS_ABSOLUTO} minutos.`;
+  if (!Number.isFinite(minVal) || !Number.isFinite(maxVal) || minVal < 1 || maxVal < minVal) {
+    erroConfig.textContent = "Valores inválidos. O mínimo deve ser 1 ou maior, e não pode ultrapassar o máximo.";
     erroConfig.classList.remove('hidden');
     return;
   }
 
-  tempoMedioMinutos = Math.floor(valor);
-  tempoMedioManualInput.value = tempoMedioMinutos;
+  tempoMinimoAtual = Math.floor(minVal);
+  tempoMaximoAtual = Math.floor(maxVal);
+
+  tempoMinimoManualInput.value = tempoMinimoAtual;
+  tempoMaximoManualInput.value = tempoMaximoAtual;
+
   atualizarResumoConfig();
   erroConfig.classList.add('hidden');
 
@@ -412,17 +343,20 @@ function configurarTempoMedio(evento) {
 }
 
 function aplicarTempoManual() {
-  const valor = Number(tempoMedioManualInput.value);
+  const minVal = Number(tempoMinimoManualInput.value);
+  const maxVal = Number(tempoMaximoManualInput.value);
 
-  if (!Number.isFinite(valor) || valor < MIN_MINUTOS_ABSOLUTO || valor > MAX_MINUTOS_ABSOLUTO) {
-    mostrarErroTempoManual(
-      `Informe um tempo médio entre ${MIN_MINUTOS_ABSOLUTO} e ${MAX_MINUTOS_ABSOLUTO} minutos.`,
-    );
+  if (!Number.isFinite(minVal) || !Number.isFinite(maxVal) || minVal < 1 || maxVal < minVal) {
+    mostrarErroTempoManual("Valores inválidos. O mínimo deve ser menor ou igual ao máximo.");
     return;
   }
 
-  tempoMedioMinutos = Math.floor(valor);
-  tempoMedioInput.value = tempoMedioMinutos;
+  tempoMinimoAtual = Math.floor(minVal);
+  tempoMaximoAtual = Math.floor(maxVal);
+
+  tempoMinimoInput.value = tempoMinimoAtual;
+  tempoMaximoInput.value = tempoMaximoAtual;
+
   limparErroTempoManual();
   atualizarResumoConfig();
 
@@ -430,8 +364,6 @@ function aplicarTempoManual() {
     iniciarCicloOculto();
   }
 }
-
-
 
 function abrirModoConvencional() {
   modoAtual = 'convencional';
@@ -446,19 +378,19 @@ function abrirModoPomodoro() {
   telaInicial.classList.add('hidden');
   painelPrincipal.classList.remove('hidden');
   pomodoroPainel.classList.remove('hidden');
-  tempoMedioMinutos = 20;
+  
+  // Define tempos de exibição para o pomodoro
+  tempoMinimoAtual = MIN_FOCO_POMODORO;
+  tempoMaximoAtual = MAX_FOCO_POMODORO;
+  
   atualizarResumoConfig();
   desativar();
 }
 
-formConfig.addEventListener('submit', configurarTempoMedio);
-tempoMedioInput.addEventListener('input', atualizarPreviewFaixa);
+formConfig.addEventListener('submit', configurarTempos);
 btnAdicionarIntervalo.addEventListener('click', adicionarIntervalo);
 intervaloNovoInput.addEventListener('keydown', (evento) => {
-  if (evento.key !== 'Enter') {
-    return;
-  }
-
+  if (evento.key !== 'Enter') return;
   evento.preventDefault();
   adicionarIntervalo();
 });
@@ -467,19 +399,18 @@ btnPararContinuar.addEventListener('click', pararMusicaEContinuar);
 btnDesativar.addEventListener('click', desativar);
 btnReconfigurar.addEventListener('click', voltarParaConfiguracao);
 btnAplicarTempoManual.addEventListener('click', aplicarTempoManual);
-tempoMedioManualInput.addEventListener('keydown', (evento) => {
-  if (evento.key !== 'Enter') {
-    return;
-  }
 
-  evento.preventDefault();
-  aplicarTempoManual();
+[tempoMinimoManualInput, tempoMaximoManualInput].forEach(input => {
+  input.addEventListener('keydown', (evento) => {
+    if (evento.key !== 'Enter') return;
+    evento.preventDefault();
+    aplicarTempoManual();
+  });
 });
 
 btnModoConvencional.addEventListener('click', abrirModoConvencional);
 btnModoPomodoro.addEventListener('click', abrirModoPomodoro);
 
-atualizarPreviewFaixa();
 atualizarEstadoBotoes();
 
 window.addEventListener('beforeunload', () => {
