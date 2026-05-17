@@ -47,7 +47,7 @@
       <section id="painelPrincipal" class="hidden">
         <section id="pomodoroPainel" class="status-card hidden">
           <p class="label">Descanso Pomodoro</p>
-          <p id="descansoTempo" class="status-value">00:00</p>
+          <p id="descansoTempo" class="status-value">Não visível</p>
         </section>
 
         <section class="status-card">
@@ -65,6 +65,14 @@
             <button id="btnAplicarTempoManual" class="btn" type="button">Aplicar</button>
           </div>
           <p id="erroTempoManual" class="erro hidden" role="alert"></p>
+
+          <div id="ajusteDescansoPomodoro" class="hidden">
+            <p class="label">Descanso Pomodoro (Min / Max)</p>
+            <div class="ajuste-inputs">
+              <input id="descansoMinimoManual" type="number" min="1" step="1" placeholder="Descanso mínimo (min)" aria-label="Ajustar descanso mínimo do pomodoro" />
+              <input id="descansoMaximoManual" type="number" min="1" step="1" placeholder="Descanso máximo (min)" aria-label="Ajustar descanso máximo do pomodoro" />
+            </div>
+          </div>
         </section>
 
         <section id="alertaDesafio" class="alerta hidden" role="alert"><p>Abra o outro app e faça o ciclo.</p></section>
