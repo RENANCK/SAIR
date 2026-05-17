@@ -56,6 +56,7 @@ let tempoMaximoAtual = null;
 let descansoMinimoAtual = MIN_DESCANSO_POMODORO_PADRAO;
 let descansoMaximoAtual = MAX_DESCANSO_POMODORO_PADRAO;
 let proximoDesafioEm = null;
+let emDescansoPomodoro = false;
 let intervalosPersonalizados = [];
 
 const CONTAGEM_FINAL_SEGUNDOS = 2 * 60;
@@ -239,6 +240,27 @@ function iniciarCicloOculto() {
   limparTimer();
   limparContagem();
 
+  if (modoAtual === 'pomodoro' && emDescansoPomodoro) {
+    atualizarStatusPrincipal('Descanso', 'status-on');
+    subStatus.textContent = 'Descanso em andamento (oculto).';
+    alertaDesafio.classList.add('hidden');
+    atualizarEstadoBotoes();
+
+    const descansoMs = sortearDescansoPomodoroMs();
+    descansoFimEm = Date.now() + descansoMs;
+    proximoDesafioEm = descansoFimEm;
+    atualizarCronometroDescanso();
+
+    timerId = setTimeout(() => {
+      emDescansoPomodoro = false;
+      iniciarCicloOculto();
+    }, descansoMs);
+
+    atualizarContagemRegressivaFinal();
+    countdownId = setInterval(atualizarContagemRegressivaFinal, 1000);
+    return;
+  }
+
   atualizarStatusPrincipal('Ativo', 'status-on');
   subStatus.textContent = 'Próximo estímulo: surpresa.';
   alertaDesafio.classList.add('hidden');
@@ -246,12 +268,11 @@ function iniciarCicloOculto() {
 
   const duracaoMs = sortearDuracaoMs();
   proximoDesafioEm = Date.now() + duracaoMs;
-
   if (modoAtual === 'pomodoro') {
-    const descansoMs = sortearDescansoPomodoroMs();
-    descansoFimEm = Date.now() + descansoMs;
+    descansoFimEm = null;
     atualizarCronometroDescanso();
   }
+
   timerId = setTimeout(dispararDesafio, duracaoMs);
   atualizarContagemRegressivaFinal();
   countdownId = setInterval(atualizarContagemRegressivaFinal, 1000);
@@ -280,6 +301,7 @@ function ativar() {
   if (!tempoMinimoAtual || !tempoMaximoAtual || ativo) return;
   ativo = true;
   emDesafio = false;
+  emDescansoPomodoro = false;
   atualizarEstadoBotoes();
   iniciarCicloOculto();
 }
@@ -289,12 +311,16 @@ function pararMusicaEContinuar() {
   alarme.pause();
   alarme.currentTime = 0;
   emDesafio = false;
+  if (modoAtual === 'pomodoro') {
+    emDescansoPomodoro = true;
+  }
   iniciarCicloOculto();
 }
 
 function desativar() {
   ativo = false;
   emDesafio = false;
+  emDescansoPomodoro = false;
   limparTimer();
   limparContagem();
   alarme.pause();
