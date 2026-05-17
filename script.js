@@ -46,6 +46,31 @@ const btnReconfigurar = document.getElementById('btnReconfigurar');
 
 const alarme = document.getElementById('alarme');
 alarme.loop = true;
+alarme.volume = 1;
+
+const ALARME_GANHO_EXTRA = 2.2;
+let audioContextAlarme = null;
+let gainNodeAlarme = null;
+let sourceNodeAlarme = null;
+
+function configurarGanhoAlarme() {
+  if (typeof window.AudioContext === 'undefined' && typeof window.webkitAudioContext === 'undefined') return false;
+
+  if (!audioContextAlarme) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    audioContextAlarme = new Ctx();
+  }
+
+  if (!sourceNodeAlarme) {
+    sourceNodeAlarme = audioContextAlarme.createMediaElementSource(alarme);
+    gainNodeAlarme = audioContextAlarme.createGain();
+    gainNodeAlarme.gain.value = ALARME_GANHO_EXTRA;
+    sourceNodeAlarme.connect(gainNodeAlarme);
+    gainNodeAlarme.connect(audioContextAlarme.destination);
+  }
+
+  return true;
+}
 
 let timerId = null;
 let countdownId = null;
@@ -290,6 +315,9 @@ async function dispararDesafio() {
 
   try {
     alarme.currentTime = 0;
+    if (configurarGanhoAlarme() && audioContextAlarme?.state === 'suspended') {
+      await audioContextAlarme.resume();
+    }
     await alarme.play();
   } catch (erro) {
     subStatus.textContent = 'Desafio! Não foi possível tocar o alarme automaticamente.';
