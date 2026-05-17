@@ -301,3 +301,14 @@ h1 {
     order: -1; 
   }
 }
+
+.contador-value {
+  margin: 0.5rem 0;
+  font-size: clamp(2.4rem, 8vw, 4.5rem);
+  font-weight: 700;
+  color: #111827;
+}
+
+.contador-actions {
+  margin-top: 0.8rem;
+}

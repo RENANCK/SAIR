@@ -38,6 +38,10 @@ const erroIntervalos = document.getElementById('erroIntervalos');
 const statusPrincipal = document.getElementById('statusPrincipal');
 const subStatus = document.getElementById('subStatus');
 const alertaDesafio = document.getElementById('alertaDesafio');
+const contadorCliquesCard = document.getElementById('contadorCliquesCard');
+const contadorCliques = document.getElementById('contadorCliques');
+const btnContadorSomar = document.getElementById('btnContadorSomar');
+const btnContadorResetar = document.getElementById('btnContadorResetar');
 
 const btnAtivar = document.getElementById('btnAtivar');
 const btnPararContinuar = document.getElementById('btnPararContinuar');
@@ -58,6 +62,7 @@ let descansoMaximoAtual = MAX_DESCANSO_POMODORO_PADRAO;
 let proximoDesafioEm = null;
 let emDescansoPomodoro = false;
 let intervalosPersonalizados = [];
+let numeroCliques = 0;
 
 const CONTAGEM_FINAL_SEGUNDOS = 2 * 60;
 
@@ -245,6 +250,7 @@ function iniciarCicloOculto() {
     subStatus.textContent = 'Descanso em andamento (oculto).';
     alertaDesafio.classList.add('hidden');
     atualizarEstadoBotoes();
+atualizarContadorCliques();
 
     const descansoMs = sortearDescansoPomodoroMs();
     descansoFimEm = Date.now() + descansoMs;
@@ -265,6 +271,7 @@ function iniciarCicloOculto() {
   subStatus.textContent = 'Próximo estímulo: surpresa.';
   alertaDesafio.classList.add('hidden');
   atualizarEstadoBotoes();
+atualizarContadorCliques();
 
   const duracaoMs = sortearDuracaoMs();
   proximoDesafioEm = Date.now() + duracaoMs;
@@ -287,6 +294,7 @@ async function dispararDesafio() {
   subStatus.textContent = 'Abra o outro app e faça o ciclo.';
   alertaDesafio.classList.remove('hidden');
   atualizarEstadoBotoes();
+atualizarContadorCliques();
 
   try {
     alarme.currentTime = 0;
@@ -295,6 +303,22 @@ async function dispararDesafio() {
     subStatus.textContent = 'Desafio! Não foi possível tocar o alarme automaticamente.';
     console.warn('Falha ao tocar alarme:', erro);
   }
+}
+
+
+function atualizarContadorCliques() {
+  if (!contadorCliques) return;
+  contadorCliques.textContent = String(numeroCliques);
+}
+
+function somarClique() {
+  numeroCliques += 1;
+  atualizarContadorCliques();
+}
+
+function resetarCliques() {
+  numeroCliques = 0;
+  atualizarContadorCliques();
 }
 
 function ativar() {
@@ -409,6 +433,7 @@ function abrirModoConvencional() {
   modoAtual = 'convencional';
   pomodoroPainel.classList.add('hidden');
   ajusteDescansoPomodoro.classList.add('hidden');
+  contadorCliquesCard.classList.remove('hidden');
   telaModo.classList.add('hidden');
   telaInicial.classList.remove('hidden');
 }
@@ -420,6 +445,7 @@ function abrirModoPomodoro() {
   painelPrincipal.classList.remove('hidden');
   pomodoroPainel.classList.remove('hidden');
   ajusteDescansoPomodoro.classList.remove('hidden');
+  contadorCliquesCard.classList.add('hidden');
   
   // Define tempos de exibição para o pomodoro
   tempoMinimoAtual = MIN_FOCO_POMODORO;
@@ -455,9 +481,12 @@ btnAplicarTempoManual.addEventListener('click', aplicarTempoManual);
 });
 
 btnModoConvencional.addEventListener('click', abrirModoConvencional);
+btnContadorSomar.addEventListener('click', somarClique);
+btnContadorResetar.addEventListener('click', resetarCliques);
 btnModoPomodoro.addEventListener('click', abrirModoPomodoro);
 
 atualizarEstadoBotoes();
+atualizarContadorCliques();
 
 window.addEventListener('beforeunload', () => {
   limparTimer();
