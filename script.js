@@ -1,7 +1,7 @@
 const MIN_FOCO_POMODORO = 8;
 const MAX_FOCO_POMODORO = 35;
-const MIN_DESCANSO_POMODORO = 4;
-const MAX_DESCANSO_POMODORO = 25;
+const MIN_DESCANSO_POMODORO_PADRAO = 4;
+const MAX_DESCANSO_POMODORO_PADRAO = 25;
 
 const telaModo = document.getElementById('telaModo');
 const btnModoConvencional = document.getElementById('btnModoConvencional');
@@ -24,6 +24,9 @@ const configResumo = document.getElementById('configResumo');
 
 const tempoMinimoManualInput = document.getElementById('tempoMinimoManual');
 const tempoMaximoManualInput = document.getElementById('tempoMaximoManual');
+const ajusteDescansoPomodoro = document.getElementById('ajusteDescansoPomodoro');
+const descansoMinimoManualInput = document.getElementById('descansoMinimoManual');
+const descansoMaximoManualInput = document.getElementById('descansoMaximoManual');
 const btnAplicarTempoManual = document.getElementById('btnAplicarTempoManual');
 const erroTempoManual = document.getElementById('erroTempoManual');
 
@@ -50,6 +53,8 @@ let ativo = false;
 let emDesafio = false;
 let tempoMinimoAtual = null;
 let tempoMaximoAtual = null;
+let descansoMinimoAtual = MIN_DESCANSO_POMODORO_PADRAO;
+let descansoMaximoAtual = MAX_DESCANSO_POMODORO_PADRAO;
 let proximoDesafioEm = null;
 let intervalosPersonalizados = [];
 
@@ -141,6 +146,11 @@ function atualizarResumoConfig() {
     configResumo.textContent = `Faixa sorteio: ${tempoMinimoAtual} a ${tempoMaximoAtual} min (Intervalos extras: ${intervalosPersonalizados.join(', ')} min).`;
     return;
   }
+  if (modoAtual === 'pomodoro') {
+    configResumo.textContent = `Ciclos de foco aleatórios entre ${tempoMinimoAtual} e ${tempoMaximoAtual} minutos. Descanso entre ${descansoMinimoAtual} e ${descansoMaximoAtual} minutos.`;
+    return;
+  }
+
   configResumo.textContent = `Sorteando ciclos aleatórios entre ${tempoMinimoAtual} e ${tempoMaximoAtual} minutos.`;
 }
 
@@ -197,14 +207,7 @@ function atualizarContagemRegressivaFinal() {
     return;
   }
 
-  if (modoAtual === 'pomodoro') {
-    atualizarCronometroDescanso();
-  }
-
-  if (restanteSegundos <= CONTAGEM_FINAL_SEGUNDOS) {
-    subStatus.textContent = `Faltam ${formatarSegundosEmMinutos(restanteSegundos)} para o próximo estímulo.`;
-    return;
-  }
+  if (modoAtual === 'pomodoro') atualizarCronometroDescanso();
 
   subStatus.textContent = 'Próximo estímulo: surpresa.';
 }
@@ -221,15 +224,13 @@ function atualizarEstadoBotoes() {
 }
 
 function sortearDescansoPomodoroMs() {
-  const minutosDescanso = Math.floor(Math.random() * (MAX_DESCANSO_POMODORO - MIN_DESCANSO_POMODORO + 1)) + MIN_DESCANSO_POMODORO;
+  const minutosDescanso = Math.floor(Math.random() * (descansoMaximoAtual - descansoMinimoAtual + 1)) + descansoMinimoAtual;
   return minutosDescanso * 60 * 1000;
 }
 
 function atualizarCronometroDescanso() {
-  if (modoAtual !== 'pomodoro' || !descansoFimEm || !descansoTempo) return;
-  const restanteMs = descansoFimEm - Date.now();
-  const restanteSegundos = Math.max(0, Math.ceil(restanteMs / 1000));
-  descansoTempo.textContent = formatarSegundosEmMinutos(restanteSegundos);
+  if (modoAtual !== 'pomodoro' || !descansoTempo) return;
+  descansoTempo.textContent = 'Não visível';
 }
 
 function iniciarCicloOculto() {
@@ -357,6 +358,19 @@ function aplicarTempoManual() {
   tempoMinimoInput.value = tempoMinimoAtual;
   tempoMaximoInput.value = tempoMaximoAtual;
 
+  if (modoAtual === 'pomodoro') {
+    const descansoMin = Number(descansoMinimoManualInput.value);
+    const descansoMax = Number(descansoMaximoManualInput.value);
+
+    if (!Number.isFinite(descansoMin) || !Number.isFinite(descansoMax) || descansoMin < 1 || descansoMax < descansoMin) {
+      mostrarErroTempoManual('Descanso inválido. O mínimo deve ser menor ou igual ao máximo.');
+      return;
+    }
+
+    descansoMinimoAtual = Math.floor(descansoMin);
+    descansoMaximoAtual = Math.floor(descansoMax);
+  }
+
   limparErroTempoManual();
   atualizarResumoConfig();
 
@@ -368,6 +382,7 @@ function aplicarTempoManual() {
 function abrirModoConvencional() {
   modoAtual = 'convencional';
   pomodoroPainel.classList.add('hidden');
+  ajusteDescansoPomodoro.classList.add('hidden');
   telaModo.classList.add('hidden');
   telaInicial.classList.remove('hidden');
 }
@@ -378,10 +393,15 @@ function abrirModoPomodoro() {
   telaInicial.classList.add('hidden');
   painelPrincipal.classList.remove('hidden');
   pomodoroPainel.classList.remove('hidden');
+  ajusteDescansoPomodoro.classList.remove('hidden');
   
   // Define tempos de exibição para o pomodoro
   tempoMinimoAtual = MIN_FOCO_POMODORO;
   tempoMaximoAtual = MAX_FOCO_POMODORO;
+  descansoMinimoAtual = MIN_DESCANSO_POMODORO_PADRAO;
+  descansoMaximoAtual = MAX_DESCANSO_POMODORO_PADRAO;
+  descansoMinimoManualInput.value = descansoMinimoAtual;
+  descansoMaximoManualInput.value = descansoMaximoAtual;
   
   atualizarResumoConfig();
   desativar();
