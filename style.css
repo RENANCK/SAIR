@@ -44,6 +44,53 @@ h1 {
   gap: 0.8rem;
 }
 
+.intervalos-card {
+  margin: 0;
+  padding: 0.9rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  text-align: left;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.intervalo-inputs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+#intervaloNovo {
+  flex: 1;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0.8rem;
+  font-size: 1rem;
+}
+
+.intervalo-lista {
+  list-style: none;
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+}
+
+.intervalo-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.7rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.45rem 0.65rem;
+  background: #fff;
+}
+
+.intervalo-remover {
+  padding: 0.45rem 0.65rem;
+  font-size: 0.85rem;
+}
+
 .setup-label {
   font-weight: 600;
   color: #374151;
@@ -77,6 +124,30 @@ h1 {
   border-radius: 12px;
   border: 1px solid #e5e7eb;
   background: #f9fafb;
+}
+
+.ajuste-card {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  display: grid;
+  gap: 0.65rem;
+  text-align: left;
+}
+
+.ajuste-inputs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+#tempoMedioManual {
+  flex: 1;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0.8rem;
+  font-size: 1rem;
 }
 
 .label {
@@ -138,10 +209,15 @@ h1 {
   background: #fff;
 }
 
-.btn:hover:enabled {
-  filter: brightness(0.97);
-}
+@media (max-width: 420px) {
+  .intervalo-inputs {
+    flex-direction: column;
+  }
 
+  .ajuste-inputs {
+    flex-direction: column;
+  }
+}
 .btn:disabled {
   cursor: not-allowed;
   opacity: 0.6;
@@ -157,4 +233,82 @@ h1 {
   background: #dc2626;
   color: #fff;
   border-color: #dc2626;
+}
+
+.pomodoro-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.descanso-card {
+  border-color: #60a5fa;
+  background: #eff6ff;
+}
+
+.descanso-status {
+  color: #2563eb;
+}
+.painel-central-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr;
+  gap: 1rem;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.controle-lateral {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.label-lateral {
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #dc2626; /* Cor vermelha como no seu esboço */
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.input-lateral {
+  width: 100%;
+  max-width: 80px;
+  text-align: center;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 0.8rem 0.2rem;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #111827;
+}
+
+.input-lateral:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+/* Ajuste para telas de celular (coloca o status no topo e os tempos embaixo) */
+@media (max-width: 500px) {
+  .painel-central-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .painel-central-grid .status-card {
+    grid-column: span 2;
+    order: -1; 
+  }
+}
+
+.contador-value {
+  margin: 0.5rem 0;
+  font-size: clamp(2.4rem, 8vw, 4.5rem);
+  font-weight: 700;
+  color: #111827;
+}
+
+.contador-actions {
+  margin-top: 0.8rem;
 }
