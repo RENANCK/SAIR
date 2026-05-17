@@ -30,9 +30,7 @@
 
           <fieldset class="intervalos-card">
             <legend class="setup-label">Intervalos personalizados (opcional)</legend>
-            <p class="setup-text">
-              Adicione intervalos fixos em minutos. Se houver intervalos cadastrados, o timer sorteia apenas entre eles.
-            </p>
+            <p class="setup-text">Adicione intervalos fixos em minutos. Se houver intervalos cadastrados, o timer sorteia apenas entre eles.</p>
             <div class="intervalo-inputs">
               <input id="intervaloNovo" type="number" min="1" step="1" placeholder="Ex.: 7" aria-label="Novo intervalo em minutos" />
               <button id="btnAdicionarIntervalo" class="btn" type="button">Adicionar</button>
@@ -46,25 +44,11 @@
         </form>
       </section>
 
-      <div class="painel-central-grid">
-          <div class="controle-lateral">
-            <label for="tempoMinimoManual" class="label-lateral">Tempo Mínimo</label>
-            <input id="tempoMinimoManual" class="input-lateral" type="number" min="1" step="1" aria-label="Ajustar tempo mínimo manualmente" />
-          </div>
-
-          <section class="status-card" style="margin: 0;">
-            <p class="label">Status</p>
-            <p id="statusPrincipal" class="status-value status-off">Desligado</p>
-            <p id="subStatus" class="substatus">Cronômetro desligado.</p>
-            <p id="configResumo" class="setup-resumo"></p>
-          </section>
-
-          <div class="controle-lateral">
-            <label for="tempoMaximoManual" class="label-lateral">Tempo Máximo</label>
-            <input id="tempoMaximoManual" class="input-lateral" type="number" min="1" step="1" aria-label="Ajustar tempo máximo manualmente" />
-          </div>
-        </div>
-        <p id="erroTempoManual" class="erro hidden" role="alert" style="margin-bottom: 1rem;"></p>
+      <section id="painelPrincipal" class="hidden">
+        <section id="pomodoroPainel" class="status-card hidden">
+          <p class="label">Descanso Pomodoro</p>
+          <p id="descansoTempo" class="status-value">00:00</p>
+        </section>
 
         <section class="status-card">
           <p class="label">Status</p>
